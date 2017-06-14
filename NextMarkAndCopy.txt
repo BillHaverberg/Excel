@@ -1,0 +1,20 @@
+Sub NextMarkAndCopy()
+'
+' Macro1 NextMarkAndCopy
+' Very simple but useful macro that moves down to the next cell, hilights, and copies the value
+' there. This is useful when working down a list of items, by marking that row as "done" and
+' making its contents available for pasting to another location or document. This also prevents you
+' from skipping or repeating a row because the hilight marks your progress.  Attach the macro
+' to yoor Quick Access Toolbar or bind it to a key to make it easy to use.
+
+    ActiveCell.Offset(1, 0).Range("A1").Select
+    Selection.Copy
+    Application.CutCopyMode = False
+    With Selection.Interior
+        .Pattern = xlSolid
+        .PatternColorIndex = xlAutomatic
+        .Color = 65535
+        .TintAndShade = 0
+        .PatternTintAndShade = 0
+    End With
+End Sub

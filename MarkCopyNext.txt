@@ -1,0 +1,60 @@
+' Fills the active cell with a hilight.  This ccde can be reused elsewhere
+Sub MarkCell()
+    With Selection.Interior
+        .Pattern = xlSolid
+        .PatternColorIndex = xlAutomatic
+        .Color = 65535
+        .TintAndShade = 0
+        .PatternTintAndShade = 0
+    End With
+End Sub
+
+' Main Code.  Marks and copies value of current cell to the clipboard
+Sub MarkCopyNext()
+    Dim DataObj As MSForms.DataObject
+    Set DataObj = New MSForms.DataObject
+    Static Source_WS As String
+    Dim answer As String
+    
+    ' When the user changes the worksheet they copying from, make sure they are aware of that
+    ' and give them a chance to back out in case it was an accident
+    If Source_WS = "" Then
+        Source_WS = ActiveSheet.Name
+    ElseIf Source_WS <> ActiveSheet.Name Then
+        Dim msg As String
+        msg = "Source Worksheet has changed from " + Source_WS + " to " + ActiveSheet.Name + vbCrLf
+        msg = msg & "Select YES to continue working with " + Source_WS + vbCrLf
+        msg = msg & "Select NO to change to " + ActiveSheet.Name
+        answer = MsgBox(msg, vbYesNo + vbQuestion, "Worhsheet has changed")
+        If answer = vbYes Then
+            Worksheets(Source_WS).Activate
+            Exit Sub
+        Else
+            Source_WS = ActiveSheet.Name
+        End If
+    End If
+    
+    ' If they are already in a marked row, advance to the next row
+    ' This allows the user to seamlessly transition from the first row to the second
+    If ActiveCell.Interior.Pattern <> xlNone Then
+        ActiveCell.Offset(1, 0).Range("A1").Select
+    End If
+    
+    ' Warn user if they are about to copy an empty cell
+    ' This prevents them from accidentally proceeding past the last row
+    If IsEmpty(ActiveCell.Value) Then
+        answer = MsgBox("No value in cell, proceed?", vbYesNo + vbQuestion, "Empty Cell")
+        If answer = vbNo Then
+            DataObj.SetText ("")
+            DataObj.PutInClipboard
+            Exit Sub
+        End If
+    End If
+    
+    ' The real action, copying from the worksheet to the Microsoft Clipboard using .net to get around
+    ' some Excel-specific copy code, leaving a selected cell with marching ants around it
+    DataObj.SetText ActiveCell.Text
+    DataObj.PutInClipboard
+    
+    Call MarkCell
+End Sub
